@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RAHUL-PW | THE OMNI-MACHINE</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-dark: #09090b;
+            --bg-card: #18181b;
+            --accent: #3b82f6;
+            --accent-glow: rgba(59, 130, 246, 0.5);
+            --text-main: #fafafa;
+            --text-dim: #a1a1aa;
+            --border: #27272a;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
+        body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
+
+        /* Header */
+        header {
+            height: 70px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 40px;
+            background: rgba(9, 9, 11, 0.8);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+            position: sticky; top: 0; z-index: 1000;
+        }
+        .brand { font-size: 24px; font-weight: 800; letter-spacing: -1px; }
+        .brand span { color: var(--accent); }
+        .status { font-size: 12px; color: #22c55e; display: flex; align-items: center; gap: 6px; }
+        .status::before { content: ''; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; }
+
+        /* Main */
+        main { padding: 30px 40px; max-width: 1400px; margin: 0 auto; min-height: calc(100vh - 70px); }
+
+        .nav-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; font-size: 14px; color: var(--text-dim); }
+        .nav-item { cursor: pointer; transition: color 0.2s; }
+        .nav-item:hover { color: var(--accent); }
+        .nav-item.active { color: var(--text-main); font-weight: 600; }
+
+        /* Grid System */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+            opacity: 1;
+            transition: opacity 0.3s ease;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            overflow: hidden;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            cursor: pointer;
+            position: relative;
+        }
+        .card:hover { transform: translateY(-8px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px var(--accent-glow); }
+
+        .card-img-wrap { width: 100%; height: 180px; position: relative; background: #27272a; }
+        .card-img { width: 100%; height: 100%; object-fit: cover; }
+        .card-badge { position: absolute; top: 12px; right: 12px; background: var(--accent); color: white; padding: 4px 10px; border-radius: 8px; font-size: 10px; font-weight: 700; }
+
+        .card-content { padding: 20px; }
+        .card-title { font-size: 17px; font-weight: 700; margin-bottom: 6px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+        .card-desc { font-size: 13px; color: var(--text-dim); margin-bottom: 16px; }
+
+        .action-btn {
+            width: 100%;
+            padding: 12px;
+            border-radius: 12px;
+            background: #27272a;
+            color: white;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+            transition: all 0.2s;
+            border: 1px solid transparent;
+        }
+        .card:hover .action-btn { background: var(--accent); border-color: rgba(255,255,255,0.1); }
+
+        /* Modal */
+        #server-modal {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
+            z-index: 2000; align-items: center; justify-content: center; padding: 20px;
+        }
+        .modal-body {
+            background: var(--bg-card); border: 1px solid var(--border); border-radius: 30px;
+            width: 100%; max-width: 450px; padding: 30px; text-align: center;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+        }
+        .modal-body h2 { margin-bottom: 10px; font-size: 22px; }
+        .modal-body p { color: var(--text-dim); margin-bottom: 24px; font-size: 14px; }
+        .server-grid { display: flex; flex-direction: column; gap: 14px; }
+        .server-opt {
+            padding: 16px; background: #27272a; border-radius: 18px; border: 1px solid var(--border);
+            cursor: pointer; font-weight: 700; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px;
+        }
+        .server-opt:hover { background: var(--accent); border-color: white; transform: scale(1.02); }
+        .close-btn { margin-top: 20px; font-size: 13px; color: var(--text-dim); cursor: pointer; text-decoration: underline; }
+
+        /* Loader */
+        .loader-wrap { display: none; padding: 100px 0; text-align: center; width: 100%; }
+        .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            header { padding: 0 20px; }
+            main { padding: 20px; }
+            .content-grid { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">RAHUL<span>-PW</span></div>
+        <div class="status">PROXY SYSTEM ACTIVE</div>
+    </header>
+
+    <main>
+        <div class="nav-bar" id="nav-bar">
+            <span class="nav-item active" onclick="loadBatches()">Home</span>
+        </div>
+
+        <div id="loader" class="loader-wrap">
+            <div class="spinner"></div>
+            <p>Sir, decrypting matrix data...</p>
+        </div>
+
+        <div id="grid" class="content-grid"></div>
+    </main>
+
+    <div id="server-modal">
+        <div class="modal-body">
+            <h2 id="m-title">Choose Server</h2>
+            <p>Select a server to play the lecture</p>
+            <div class="server-grid" id="m-servers"></div>
+            <div class="close-btn" onclick="toggleModal(false)">BACK TO LECTURES</div>
+        </div>
+    </div>
+
+    <script>
+        const KEY = "ENCRYPT_KEY_4431";
+        const PROXY = "https://pw-zero.pages.dev/proxy";
+        
+        let state = { batchId: '', subjectId: '', history: [] };
+
+        // --- ENCODING ENGINE ---
+        function encodeParams(params) {
+            const json = encodeURIComponent(JSON.stringify(params));
+            let xor = "";
+            for (let i = 0; i < json.length; i++) {
+                xor += String.fromCharCode(json.charCodeAt(i) ^ KEY.charCodeAt(i % KEY.length));
+            }
+            return Array.from(xor).map(c => c.charCodeAt(0).toString(16).padStart(2, "0")).join("");
+        }
+
+        async function api(action, extras = {}) {
+            toggleLoader(true);
+            const q = encodeParams({ action, ...extras });
+            try {
+                const res = await fetch(`${PROXY}?q=${q}`);
+                const data = await res.json();
+                toggleLoader(false);
+                return data;
+            } catch (err) {
+                console.error(err);
+                alert("Sir, connection dropped. Proxy might be rotating.");
+                toggleLoader(false);
+            }
+        }
+
+        // --- UI HELPERS ---
+        function toggleLoader(show) {
+            document.getElementById('loader').style.display = show ? 'block' : 'none';
+            document.getElementById('grid').style.opacity = show ? '0' : '1';
+        }
+
+        function toggleModal(show) {
+            document.getElementById('server-modal').style.display = show ? 'flex' : 'none';
+        }
+
+        function renderNav(items) {
+            const nav = document.getElementById('nav-bar');
+            nav.innerHTML = '<span class="nav-item" onclick="loadBatches()">Home</span>';
+            items.forEach((it, idx) => {
+                const span = document.createElement('span');
+                span.className = `nav-item ${idx === items.length-1 ? 'active' : ''}`;
+                span.innerHTML = ` &nbsp;/&nbsp; ${it.label}`;
+                span.onclick = it.fn;
+                nav.appendChild(span);
+            });
+        }
+
+        // --- CORE ACTIONS ---
+        async function loadBatches() {
+            const data = await api('get_batches_list');
+            if (!data || !data.success) return;
+            
+            renderNav([]);
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+
+            data.batches.forEach(b => {
+                const el = document.createElement('div');
+                el.className = 'card';
+                el.onclick = () => loadSubjects(b.batch_id, b.name);
+                el.innerHTML = `
+                    <div class="card-img-wrap">
+                        <img src="${b.photo}" class="card-img" onerror="this.src='https://eduzex.is-great.org/pw_banner.png'">
+                        <div class="card-badge">${b.language}</div>
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">${b.name}</div>
+                        <div class="card-desc">${b.byName}</div>
+                        <div class="action-btn">ACCESS BATCH</div>
+                    </div>
+                `;
+                grid.appendChild(el);
+            });
+        }
+
+        async function loadSubjects(batchId, batchName) {
+            state.batchId = batchId;
+            const data = await api('get_subjects', { batchId });
+            if (!data) return;
+
+            renderNav([{ label: batchName, fn: () => loadSubjects(batchId, batchName) }]);
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+
+            data.data.forEach(s => {
+                const img = s.imageId ? `${s.imageId.baseUrl}${s.imageId.key}` : '';
+                const el = document.createElement('div');
+                el.className = 'card';
+                el.onclick = () => loadChapters(s._id, s.subject, batchName);
+                el.innerHTML = `
+                    <div class="card-img-wrap">
+                        <img src="${img}" class="card-img" onerror="this.src='https://eduzex.is-great.org/pw/pi_icon.png'">
+                    </div>
+                    <div class="card-content">
+                        <div class="card-title">${s.subject}</div>
+                        <div class="card-desc">Subject Node</div>
+                        <div class="action-btn">VIEW CHAPTERS</div>
+                    </div>
+                `;
+                grid.appendChild(el);
+            });
+        }
+
+        async function loadChapters(subjectId, subjectName, batchName) {
+            state.subjectId = subjectId;
+            const data = await api('get_chapters', { batchId: state.batchId, subjectId });
+            if (!data) return;
+
+            renderNav([
+                { label: batchName, fn: () => loadSubjects(state.batchId, batchName) },
+                { label: subjectName, fn: () => loadChapters(subjectId, subjectName, batchName) }
+            ]);
+
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+
+            data.data.forEach(c => {
+                const el = document.createElement('div');
+                el.className = 'card';
+                el.onclick = () => loadLectures(c._id, c.name, subjectName, batchName);
+                el.innerHTML = `
+                    <div class="card-content">
+                        <div class="card-title">${c.name}</div>
+                        <div class="card-desc">${c.videos || 0} Lectures | ${c.notes || 0} Notes</div>
+                        <div class="action-btn">OPEN CHAPTER</div>
+                    </div>
+                `;
+                grid.appendChild(el);
+            });
+        }
+
+        async function loadLectures(chapterId, chapName, subjectName, batchName) {
+            const vData = await api('get_contents', { batchId: state.batchId, subjectId: state.subjectId, tag: chapterId, contentType: 'videos' });
+            const nData = await api('get_contents', { batchId: state.batchId, subjectId: state.subjectId, tag: chapterId, contentType: 'notes' });
+
+            renderNav([
+                { label: batchName, fn: () => loadSubjects(state.batchId, batchName) },
+                { label: subjectName, fn: () => loadChapters(state.subjectId, subjectName, batchName) },
+                { label: chapName, fn: null }
+            ]);
+
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+
+            // Lectures
+            if (vData && vData.success) {
+                vData.data.forEach(l => {
+                    const el = document.createElement('div');
+                    el.className = 'card';
+                    el.onclick = () => showPlayer(l._id, l.topic, l.videoDetails.image);
+                    el.innerHTML = `
+                        <div class="card-img-wrap">
+                            <img src="${l.videoDetails.image}" class="card-img">
+                            <div class="card-badge" style="background:#22c55e">VIDEO</div>
+                        </div>
+                        <div class="card-content">
+                            <div class="card-title">${l.topic}</div>
+                            <div class="action-btn" style="background:#22c55e">PLAY NOW</div>
+                        </div>
+                    `;
+                    grid.appendChild(el);
+                });
+            }
+
+            // Notes
+            if (nData && nData.success) {
+                nData.data.forEach(n => {
+                    const att = n.homeworkIds[0].attachmentIds[0];
+                    const url = att.baseUrl + att.key;
+                    const el = document.createElement('div');
+                    el.className = 'card';
+                    el.onclick = () => window.open(url, '_blank');
+                    el.innerHTML = `
+                        <div class="card-content">
+                            <div class="card-badge" style="background:#f59e0b">PDF</div>
+                            <div class="card-title">${n.topic}</div>
+                            <div class="action-btn" style="background:#f59e0b">OPEN NOTES</div>
+                        </div>
+                    `;
+                    grid.appendChild(el);
+                });
+            }
+        }
+
+        function showPlayer(id, title, img) {
+            document.getElementById('m-title').innerText = title;
+            const srvs = [
+                { name: 'Server 1 (StudyStark)', url: `https://studystark.com/play.php?batch_id=${state.batchId}&subject_id=${state.subjectId}&topic_id=${id}&video_id=${id}&video_name=${encodeURIComponent(title)}&video_img=${encodeURIComponent(img)}&video_type=new&play_type=Lecture` },
+                { name: 'Server 2 (StudyRatna)', url: `https://stream.studyratna.cc/play.php?video_url=&title=${encodeURIComponent(title)}&poster=${encodeURIComponent(img)}&video_id=${id}&batch_id=${state.batchId}&subject_id=${state.subjectId}&video_type=pw` },
+                { name: 'Server 3 (EduNova)', url: `https://edunova-pw.site/videoplayerr.php?video_id=${id}&batch_id=${state.batchId}&subject_id=${state.subjectId}&name=${encodeURIComponent(title)}` }
+            ];
+
+            const container = document.getElementById('m-servers');
+            container.innerHTML = '';
+            srvs.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'server-opt';
+                div.innerText = s.name;
+                div.onclick = () => window.open(s.url, '_blank');
+                container.appendChild(div);
+            });
+            toggleModal(true);
+        }
+
+        // Init
+        loadBatches();
+    </script>
+</body>
+</html>
