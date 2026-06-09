@@ -19,7 +19,6 @@
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); overflow-x: hidden; }
 
-        /* Header */
         header {
             height: 70px;
             display: flex;
@@ -36,15 +35,12 @@
         .status { font-size: 12px; color: #22c55e; display: flex; align-items: center; gap: 6px; }
         .status::before { content: ''; width: 8px; height: 8px; background: #22c55e; border-radius: 50%; box-shadow: 0 0 10px #22c55e; }
 
-        /* Main */
         main { padding: 30px 40px; max-width: 1400px; margin: 0 auto; min-height: calc(100vh - 70px); }
-
         .nav-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 30px; font-size: 14px; color: var(--text-dim); }
         .nav-item { cursor: pointer; transition: color 0.2s; }
         .nav-item:hover { color: var(--accent); }
         .nav-item.active { color: var(--text-main); font-weight: 600; }
 
-        /* Grid System */
         .content-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
@@ -53,7 +49,6 @@
             transition: opacity 0.3s ease;
         }
 
-        /* Cards */
         .card {
             background: var(--bg-card);
             border: 1px solid var(--border);
@@ -87,7 +82,6 @@
         }
         .card:hover .action-btn { background: var(--accent); border-color: rgba(255,255,255,0.1); }
 
-        /* Modal */
         #server-modal {
             display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
             z-index: 2000; align-items: center; justify-content: center; padding: 20px;
@@ -107,12 +101,10 @@
         .server-opt:hover { background: var(--accent); border-color: white; transform: scale(1.02); }
         .close-btn { margin-top: 20px; font-size: 13px; color: var(--text-dim); cursor: pointer; text-decoration: underline; }
 
-        /* Loader */
         .loader-wrap { display: none; padding: 100px 0; text-align: center; width: 100%; }
         .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        /* Responsive */
         @media (max-width: 768px) {
             header { padding: 0 20px; }
             main { padding: 20px; }
@@ -154,6 +146,7 @@
         const PROXY = "https://pw-zero.pages.dev/proxy";
         
         let state = { batchId: '', subjectId: '', history: [] };
+        const cache = {};
 
         // --- ENCODING ENGINE ---
         function encodeParams(params) {
@@ -166,17 +159,24 @@
         }
 
         async function api(action, extras = {}) {
+            const cacheKey = action + JSON.stringify(extras);
+            if (cache[cacheKey]) return cache[cacheKey];
+
             toggleLoader(true);
             const q = encodeParams({ action, ...extras });
             try {
                 const res = await fetch(`${PROXY}?q=${q}`);
                 const data = await res.json();
                 toggleLoader(false);
-                return data;
+                if (data.success) {
+                    cache[cacheKey] = data;
+                    return data;
+                }
+                return null;
             } catch (err) {
                 console.error(err);
-                alert("Sir, connection dropped. Proxy might be rotating.");
                 toggleLoader(false);
+                return null;
             }
         }
 
@@ -205,7 +205,7 @@
         // --- CORE ACTIONS ---
         async function loadBatches() {
             const data = await api('get_batches_list');
-            if (!data || !data.success) return;
+            if (!data) return;
             
             renderNav([]);
             const grid = document.getElementById('grid');
@@ -240,17 +240,19 @@
             grid.innerHTML = '';
 
             data.data.forEach(s => {
-                const img = s.imageId ? `${s.imageId.baseUrl}${s.imageId.key}` : '';
+                const id = s.id || s._id;
+                const name = s.name || s.subject;
+                const img = s.imageUrl || '';
                 const el = document.createElement('div');
                 el.className = 'card';
-                el.onclick = () => loadChapters(s._id, s.subject, batchName);
+                el.onclick = () => loadChapters(id, name, batchName);
                 el.innerHTML = `
                     <div class="card-img-wrap">
                         <img src="${img}" class="card-img" onerror="this.src='https://eduzex.is-great.org/pw/pi_icon.png'">
                     </div>
                     <div class="card-content">
-                        <div class="card-title">${s.subject}</div>
-                        <div class="card-desc">Subject Node</div>
+                        <div class="card-title">${name}</div>
+                        <div class="card-desc">${s.description || 'Subject'}</div>
                         <div class="action-btn">VIEW CHAPTERS</div>
                     </div>
                 `;
@@ -272,12 +274,14 @@
             grid.innerHTML = '';
 
             data.data.forEach(c => {
+                const id = c.id || c._id;
+                const name = c.name || c.topic;
                 const el = document.createElement('div');
                 el.className = 'card';
-                el.onclick = () => loadLectures(c._id, c.name, subjectName, batchName);
+                el.onclick = () => loadLectures(id, name, subjectName, batchName);
                 el.innerHTML = `
                     <div class="card-content">
-                        <div class="card-title">${c.name}</div>
+                        <div class="card-title">${name}</div>
                         <div class="card-desc">${c.videos || 0} Lectures | ${c.notes || 0} Notes</div>
                         <div class="action-btn">OPEN CHAPTER</div>
                     </div>
@@ -287,8 +291,10 @@
         }
 
         async function loadLectures(chapterId, chapName, subjectName, batchName) {
-            const vData = await api('get_contents', { batchId: state.batchId, subjectId: state.subjectId, tag: chapterId, contentType: 'videos' });
-            const nData = await api('get_contents', { batchId: state.batchId, subjectId: state.subjectId, tag: chapterId, contentType: 'notes' });
+            const [vData, nData] = await Promise.all([
+                api('get_contents', { batchId: state.batchId, subjectId: state.subjectId, tag: chapterId, contentType: 'videos' }),
+                api('get_contents', { batchId: state.batchId, subjectId: state.subjectId, tag: chapterId, contentType: 'notes' })
+            ]);
 
             renderNav([
                 { label: batchName, fn: () => loadSubjects(state.batchId, batchName) },
@@ -300,7 +306,7 @@
             grid.innerHTML = '';
 
             // Lectures
-            if (vData && vData.success) {
+            if (vData && vData.data) {
                 vData.data.forEach(l => {
                     const el = document.createElement('div');
                     el.className = 'card';
@@ -320,43 +326,37 @@
             }
 
             // Notes
-            if (nData && nData.success) {
+            if (nData && nData.data) {
                 nData.data.forEach(n => {
-                    const att = n.homeworkIds[0].attachmentIds[0];
-                    const url = att.baseUrl + att.key;
-                    const el = document.createElement('div');
-                    el.className = 'card';
-                    el.onclick = () => window.open(url, '_blank');
-                    el.innerHTML = `
-                        <div class="card-content">
-                            <div class="card-badge" style="background:#f59e0b">PDF</div>
-                            <div class="card-title">${n.topic}</div>
-                            <div class="action-btn" style="background:#f59e0b">OPEN NOTES</div>
-                        </div>
-                    `;
-                    grid.appendChild(el);
+                    if (n.homeworkIds && n.homeworkIds[0].attachmentIds[0]) {
+                        const att = n.homeworkIds[0].attachmentIds[0];
+                        const url = att.baseUrl + att.key;
+                        const el = document.createElement('div');
+                        el.className = 'card';
+                        el.onclick = () => window.open(url, '_blank');
+                        el.innerHTML = `
+                            <div class="card-content">
+                                <div class="card-badge" style="background:#f59e0b">PDF</div>
+                                <div class="card-title">${n.topic}</div>
+                                <div class="action-btn" style="background:#f59e0b">OPEN NOTES</div>
+                            </div>
+                        `;
+                        grid.appendChild(el);
+                    }
                 });
             }
         }
 
         function showPlayer(id, title, img) {
-            document.getElementById('m-title').innerText = title;
-            const srvs = [
-                { name: 'Server 1 (StudyStark)', url: `https://studystark.com/play.php?batch_id=${state.batchId}&subject_id=${state.subjectId}&topic_id=${id}&video_id=${id}&video_name=${encodeURIComponent(title)}&video_img=${encodeURIComponent(img)}&video_type=new&play_type=Lecture` },
-                { name: 'Server 2 (StudyRatna)', url: `https://stream.studyratna.cc/play.php?video_url=&title=${encodeURIComponent(title)}&poster=${encodeURIComponent(img)}&video_id=${id}&batch_id=${state.batchId}&subject_id=${state.subjectId}&video_type=pw` },
-                { name: 'Server 3 (EduNova)', url: `https://edunova-pw.site/videoplayerr.php?video_id=${id}&batch_id=${state.batchId}&subject_id=${state.subjectId}&name=${encodeURIComponent(title)}` }
-            ];
-
-            const container = document.getElementById('m-servers');
-            container.innerHTML = '';
-            srvs.forEach(s => {
-                const div = document.createElement('div');
-                div.className = 'server-opt';
-                div.innerText = s.name;
-                div.onclick = () => window.open(s.url, '_blank');
-                container.appendChild(div);
-            });
-            toggleModal(true);
+            const batchId = state.batchId;
+            const subjectId = state.subjectId;
+            const titleEnc = encodeURIComponent(title);
+            
+            // Redirecting to Primary Node: EduNova
+            const redirectUrl = `https://edunova-pw.site/videoplayerr.php?video_id=${id}&batch_id=${batchId}&subject_id=${subjectId}&name=${titleEnc}`;
+            
+            console.log(`[+] Strategic Redirection: ${redirectUrl}`);
+            window.open(redirectUrl, '_blank');
         }
 
         // Init
