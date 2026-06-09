@@ -116,7 +116,8 @@
 
     <header>
         <div class="brand">RAHUL<span>-PW</span></div>
-        <div class="status">PROXY SYSTEM ACTIVE</div>
+        <input type="text" id="search-bar" placeholder="Search lectures..." oninput="handleSearch(this.value)">
+        <div class="status">CITADEL ONLINE</div>
     </header>
 
     <main>
@@ -126,11 +127,59 @@
 
         <div id="loader" class="loader-wrap">
             <div class="spinner"></div>
-            <p>Sir, decrypting matrix data...</p>
+            <p>Sir, querying the Citadel...</p>
         </div>
 
         <div id="grid" class="content-grid"></div>
     </main>
+
+    <script>
+        let fullData = {};
+        
+        // Load Citadel Data
+        async function initCitadel() {
+            try {
+                const res = await fetch('data.json');
+                fullData = await res.json();
+                console.log("[!] Citadel Loaded");
+            } catch (e) {
+                console.error("[!] Citadel Access Denied/Missing");
+            }
+        }
+        initCitadel();
+
+        function handleSearch(query) {
+            if (!query) { loadBatches(); return; }
+            const q = query.toLowerCase();
+            const results = [];
+            
+            // Search through everything in the Citadel
+            for (const bId in fullData) {
+                fullData[bId].videos.forEach(v => {
+                    if (v.topic.toLowerCase().includes(q)) results.push({type: 'video', data: v, bId});
+                });
+            }
+            renderResults(results);
+        }
+
+        function renderResults(results) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            results.forEach(res => {
+                const l = res.data;
+                const el = document.createElement('div');
+                el.className = 'card';
+                el.onclick = () => showPlayer(l._id, l.topic);
+                el.innerHTML = `
+                    <div class="card-content">
+                        <div class="card-badge" style="background:#22c55e">RESULT</div>
+                        <div class="card-title">${l.topic}</div>
+                        <div class="action-btn" style="background:#22c55e">PLAY NOW</div>
+                    </div>
+                `;
+                grid.appendChild(el);
+            });
+        }
 
     <div id="server-modal">
         <div class="modal-body">
