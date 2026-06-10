@@ -104,8 +104,9 @@
             
             pageItems.forEach(b => {
                 const id = b._id || b.batch_id;
-                // Priority: previewImage -> photo -> default fallback
-                const img = b.previewImage || b.photo || 'https://i.ibb.co/VYb8s0Xw/learnwithrahulmaidalogo.webp';
+                const isFav = favorites.includes(id);
+                let img = b.previewImage || b.photo || 'https://i.ibb.co/VYb8s0Xw/learnwithrahulmaidalogo.webp';
+                if (img.includes('eduzex.is-great.org')) img = 'https://i.ibb.co/VYb8s0Xw/learnwithrahulmaidalogo.webp';
                 const bName = encodeURIComponent(b.name).replace(/%20/g,'+');
                 
                 const el = document.createElement('div');
