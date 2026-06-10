@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAHUL-PW | THE OMNI-MACHINE</title>
+    <title>RAHUL-PW | THE OMNI-MACHINE V3</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -91,7 +91,7 @@
             width: 100%; max-width: 450px; padding: 30px; text-align: center;
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
-        .modal-body h2 { margin-bottom: 10px; font-size: 22px; }
+        .modal-body h2 { margin-bottom: 10px; font-size: 20px; }
         .modal-body p { color: var(--text-dim); margin-bottom: 24px; font-size: 14px; }
         .server-grid { display: flex; flex-direction: column; gap: 14px; }
         .server-opt {
@@ -116,8 +116,7 @@
 
     <header>
         <div class="brand">RAHUL<span>-PW</span></div>
-        <input type="text" id="search-bar" placeholder="Search lectures..." oninput="handleSearch(this.value)">
-        <div class="status">CITADEL ONLINE</div>
+        <div class="status">HYBRID CORE ACTIVE</div>
     </header>
 
     <main>
@@ -127,66 +126,18 @@
 
         <div id="loader" class="loader-wrap">
             <div class="spinner"></div>
-            <p>Sir, querying the Citadel...</p>
+            <p>Sir, executing matrix protocol...</p>
         </div>
 
         <div id="grid" class="content-grid"></div>
     </main>
 
-    <script>
-        let fullData = {};
-        
-        // Load Citadel Data
-        async function initCitadel() {
-            try {
-                const res = await fetch('data.json');
-                fullData = await res.json();
-                console.log("[!] Citadel Loaded");
-            } catch (e) {
-                console.error("[!] Citadel Access Denied/Missing");
-            }
-        }
-        initCitadel();
-
-        function handleSearch(query) {
-            if (!query) { loadBatches(); return; }
-            const q = query.toLowerCase();
-            const results = [];
-            
-            // Search through everything in the Citadel
-            for (const bId in fullData) {
-                fullData[bId].videos.forEach(v => {
-                    if (v.topic.toLowerCase().includes(q)) results.push({type: 'video', data: v, bId});
-                });
-            }
-            renderResults(results);
-        }
-
-        function renderResults(results) {
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
-            results.forEach(res => {
-                const l = res.data;
-                const el = document.createElement('div');
-                el.className = 'card';
-                el.onclick = () => showPlayer(l._id, l.topic);
-                el.innerHTML = `
-                    <div class="card-content">
-                        <div class="card-badge" style="background:#22c55e">RESULT</div>
-                        <div class="card-title">${l.topic}</div>
-                        <div class="action-btn" style="background:#22c55e">PLAY NOW</div>
-                    </div>
-                `;
-                grid.appendChild(el);
-            });
-        }
-
     <div id="server-modal">
         <div class="modal-body">
-            <h2 id="m-title">Choose Server</h2>
-            <p>Select a server to play the lecture</p>
+            <h2 id="m-title">Choose Play Protocol</h2>
+            <p>Select a server node for high-speed streaming</p>
             <div class="server-grid" id="m-servers"></div>
-            <div class="close-btn" onclick="toggleModal(false)">BACK TO LECTURES</div>
+            <div class="close-btn" onclick="toggleModal(false)">[ RETURN TO CHAPTER ]</div>
         </div>
     </div>
 
@@ -195,7 +146,6 @@
         const PROXY = "https://pw-zero.pages.dev/proxy";
         
         let state = { batchId: '', subjectId: '', history: [] };
-        const cache = {};
 
         // --- ENCODING ENGINE ---
         function encodeParams(params) {
@@ -208,20 +158,24 @@
         }
 
         async function api(action, extras = {}) {
-            const cacheKey = action + JSON.stringify(extras);
-            if (cache[cacheKey]) return cache[cacheKey];
-
             toggleLoader(true);
+            
+            // HYBRID LOGIC: If getting batches, load from local file first
+            if (action === 'get_batches_list') {
+                try {
+                    const res = await fetch('batches.json');
+                    const data = await res.json();
+                    toggleLoader(false);
+                    return data;
+                } catch (e) { console.warn("Local batches.json failed, falling back to proxy..."); }
+            }
+
             const q = encodeParams({ action, ...extras });
             try {
                 const res = await fetch(`${PROXY}?q=${q}`);
                 const data = await res.json();
                 toggleLoader(false);
-                if (data.success) {
-                    cache[cacheKey] = data;
-                    return data;
-                }
-                return null;
+                return data;
             } catch (err) {
                 console.error(err);
                 toggleLoader(false);
@@ -254,24 +208,29 @@
         // --- CORE ACTIONS ---
         async function loadBatches() {
             const data = await api('get_batches_list');
-            if (!data) return;
+            if (!data || !data.batches) {
+                alert("Sir, data ingestion failed. Check network.");
+                return;
+            }
             
             renderNav([]);
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
 
             data.batches.forEach(b => {
+                const id = b._id || b.batch_id;
+                const img = b.previewImage || b.photo || 'https://eduzex.is-great.org/pw_banner.png';
                 const el = document.createElement('div');
                 el.className = 'card';
-                el.onclick = () => loadSubjects(b.batch_id, b.name);
+                el.onclick = () => loadSubjects(id, b.name);
                 el.innerHTML = `
                     <div class="card-img-wrap">
-                        <img src="${b.photo}" class="card-img" onerror="this.src='https://eduzex.is-great.org/pw_banner.png'">
-                        <div class="card-badge">${b.language}</div>
+                        <img src="${img}" class="card-img" onerror="this.src='https://eduzex.is-great.org/pw_banner.png'">
+                        <div class="card-badge">${b.language || 'Hinglish'}</div>
                     </div>
                     <div class="card-content">
                         <div class="card-title">${b.name}</div>
-                        <div class="card-desc">${b.byName}</div>
+                        <div class="card-desc">${b.byName || 'Batch'}</div>
                         <div class="action-btn">ACCESS BATCH</div>
                     </div>
                 `;
@@ -282,7 +241,7 @@
         async function loadSubjects(batchId, batchName) {
             state.batchId = batchId;
             const data = await api('get_subjects', { batchId });
-            if (!data) return;
+            if (!data || !data.data) return;
 
             renderNav([{ label: batchName, fn: () => loadSubjects(batchId, batchName) }]);
             const grid = document.getElementById('grid');
@@ -294,15 +253,23 @@
                 const img = s.imageUrl || '';
                 const el = document.createElement('div');
                 el.className = 'card';
-                el.onclick = () => loadChapters(id, name, batchName);
+                
+                // REDIRECTION LOGIC: Redirecting to External Stream Node
+                const redirectUrl = `https://stream.testuk.org/?batch_id=${batchId}&subject_id=${id}`;
+                
+                el.onclick = () => {
+                    console.log(`[+] External Node Redirection: ${redirectUrl}`);
+                    window.open(redirectUrl, '_blank');
+                };
+
                 el.innerHTML = `
                     <div class="card-img-wrap">
                         <img src="${img}" class="card-img" onerror="this.src='https://eduzex.is-great.org/pw/pi_icon.png'">
                     </div>
                     <div class="card-content">
                         <div class="card-title">${name}</div>
-                        <div class="card-desc">${s.description || 'Subject'}</div>
-                        <div class="action-btn">VIEW CHAPTERS</div>
+                        <div class="card-desc">External Chapter Hub</div>
+                        <div class="action-btn" style="background:#ef4444">OPEN IN STREAM NODE</div>
                     </div>
                 `;
                 grid.appendChild(el);
@@ -312,7 +279,7 @@
         async function loadChapters(subjectId, subjectName, batchName) {
             state.subjectId = subjectId;
             const data = await api('get_chapters', { batchId: state.batchId, subjectId });
-            if (!data) return;
+            if (!data || !data.data) return;
 
             renderNav([
                 { label: batchName, fn: () => loadSubjects(state.batchId, batchName) },
@@ -354,12 +321,11 @@
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
 
-            // Lectures
             if (vData && vData.data) {
                 vData.data.forEach(l => {
                     const el = document.createElement('div');
                     el.className = 'card';
-                    el.onclick = () => showPlayer(l._id, l.topic, l.videoDetails.image);
+                    el.onclick = () => showServerModal(l._id, l.topic, l.videoDetails.image, l.videoDetails.videoUrl || '', l.videoDetails.token || '');
                     el.innerHTML = `
                         <div class="card-img-wrap">
                             <img src="${l.videoDetails.image}" class="card-img">
@@ -374,10 +340,9 @@
                 });
             }
 
-            // Notes
             if (nData && nData.data) {
                 nData.data.forEach(n => {
-                    if (n.homeworkIds && n.homeworkIds[0].attachmentIds[0]) {
+                    if (n.homeworkIds && n.homeworkIds[0] && n.homeworkIds[0].attachmentIds[0]) {
                         const att = n.homeworkIds[0].attachmentIds[0];
                         const url = att.baseUrl + att.key;
                         const el = document.createElement('div');
@@ -396,19 +361,29 @@
             }
         }
 
-        function showPlayer(id, title, img) {
-            const batchId = state.batchId;
-            const subjectId = state.subjectId;
-            const titleEnc = encodeURIComponent(title);
+        function showServerModal(id, title, img, url, token) {
+            document.getElementById('m-title').innerText = title;
+            const bId = state.batchId;
+            const sId = state.subjectId;
             
-            // Redirecting to Primary Node: EduNova
-            const redirectUrl = `https://edunova-pw.site/videoplayerr.php?video_id=${id}&batch_id=${batchId}&subject_id=${subjectId}&name=${titleEnc}`;
-            
-            console.log(`[+] Strategic Redirection: ${redirectUrl}`);
-            window.open(redirectUrl, '_blank');
+            const srvs = [
+                { name: 'Server 1 (EduNova Redirect)', url: `https://edunova-pw.site/videoplayerr.php?video_id=${id}&batch_id=${bId}&subject_id=${sId}&name=${encodeURIComponent(title)}` },
+                { name: 'Server 2 (Heroku Stealth)', url: `https://anonymouspwplayerrr-31d6706c7a3b.herokuapp.com/pw?url=${encodeURIComponent(url)}&token=${encodeURIComponent(token)}` },
+                { name: 'Server 3 (StudyStark)', url: `https://studystark.com/play.php?batch_id=${bId}&subject_id=${sId}&topic_id=${id}&video_id=${id}&video_name=${encodeURIComponent(title)}&video_img=${encodeURIComponent(img)}&video_type=new&play_type=Lecture` }
+            ];
+
+            const container = document.getElementById('m-servers');
+            container.innerHTML = '';
+            srvs.forEach(s => {
+                const div = document.createElement('div');
+                div.className = 'server-opt';
+                div.innerHTML = `<span>⚡</span> ${s.name}`;
+                div.onclick = () => window.open(s.url, '_blank');
+                container.appendChild(div);
+            });
+            toggleModal(true);
         }
 
-        // Init
         loadBatches();
     </script>
 </body>
