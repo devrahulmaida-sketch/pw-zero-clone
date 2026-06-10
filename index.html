@@ -46,7 +46,7 @@
             grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 24px;
             opacity: 1;
-            transition: opacity 0.3s ease;
+            transition: opacity 0.1s ease;
         }
 
         .card {
@@ -54,11 +54,11 @@
             border: 1px solid var(--border);
             border-radius: 20px;
             overflow: hidden;
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
             cursor: pointer;
             position: relative;
         }
-        .card:hover { transform: translateY(-8px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5), 0 0 20px var(--accent-glow); }
+        .card:hover { transform: translateY(-4px); border-color: var(--accent); box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
 
         .card-img-wrap { width: 100%; height: 180px; position: relative; background: #27272a; }
         .card-img { width: 100%; height: 100%; object-fit: cover; }
@@ -77,33 +77,11 @@
             font-weight: 600;
             font-size: 14px;
             text-align: center;
-            transition: all 0.2s;
             border: 1px solid transparent;
         }
-        .card:hover .action-btn { background: var(--accent); border-color: rgba(255,255,255,0.1); }
+        .card:hover .action-btn { background: var(--accent); }
 
-        #server-modal {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(8px);
-            z-index: 2000; align-items: center; justify-content: center; padding: 20px;
-        }
-        .modal-body {
-            background: var(--bg-card); border: 1px solid var(--border); border-radius: 30px;
-            width: 100%; max-width: 450px; padding: 30px; text-align: center;
-            box-shadow: 0 20px 50px rgba(0,0,0,0.5);
-        }
-        .modal-body h2 { margin-bottom: 10px; font-size: 20px; }
-        .modal-body p { color: var(--text-dim); margin-bottom: 24px; font-size: 14px; }
-        .server-grid { display: flex; flex-direction: column; gap: 14px; }
-        .server-opt {
-            padding: 16px; background: #27272a; border-radius: 18px; border: 1px solid var(--border);
-            cursor: pointer; font-weight: 700; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 10px;
-        }
-        .server-opt:hover { background: var(--accent); border-color: white; transform: scale(1.02); }
-        .close-btn { margin-top: 20px; font-size: 13px; color: var(--text-dim); cursor: pointer; text-decoration: underline; }
-
-        .loader-wrap { display: none; padding: 100px 0; text-align: center; width: 100%; }
-        .spinner { width: 40px; height: 40px; border: 4px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto 20px; }
-        @keyframes spin { to { transform: rotate(360deg); } }
+        .loader-wrap { display: none; padding: 100px 0; text-align: center; width: 100%; font-weight: 700; color: var(--accent); }
 
         @media (max-width: 768px) {
             header { padding: 0 20px; }
@@ -116,7 +94,7 @@
 
     <header>
         <div class="brand">RAHUL<span>-PW</span></div>
-        <div class="status">HYBRID CORE ACTIVE</div>
+        <div class="status">HYPER-SPEED ACTIVE</div>
     </header>
 
     <main>
@@ -124,22 +102,10 @@
             <span class="nav-item active" onclick="loadBatches()">Home</span>
         </div>
 
-        <div id="loader" class="loader-wrap">
-            <div class="spinner"></div>
-            <p>Sir, executing matrix protocol...</p>
-        </div>
+        <div id="loader" class="loader-wrap">FATAFAT DATA LOADING...</div>
 
         <div id="grid" class="content-grid"></div>
     </main>
-
-    <div id="server-modal">
-        <div class="modal-body">
-            <h2 id="m-title">Choose Play Protocol</h2>
-            <p>Select a server node for high-speed streaming</p>
-            <div class="server-grid" id="m-servers"></div>
-            <div class="close-btn" onclick="toggleModal(false)">[ RETURN TO CHAPTER ]</div>
-        </div>
-    </div>
 
     <script>
         const KEY = "ENCRYPT_KEY_4431";
@@ -147,7 +113,6 @@
         
         let state = { batchId: '', subjectId: '', history: [] };
 
-        // --- ENCODING ENGINE ---
         function encodeParams(params) {
             const json = encodeURIComponent(JSON.stringify(params));
             let xor = "";
@@ -158,64 +123,31 @@
         }
 
         async function api(action, extras = {}) {
-            toggleLoader(true);
-            
-            // HYBRID LOGIC: If getting batches, load from local file first
+            // REMOVED SLOW FULL-SCREEN LOADER
             if (action === 'get_batches_list') {
                 try {
                     const res = await fetch('batches.json');
-                    const data = await res.json();
-                    toggleLoader(false);
-                    return data;
-                } catch (e) { console.warn("Local batches.json failed, falling back to proxy..."); }
+                    return await res.json();
+                } catch (e) { console.warn("Local fallback..."); }
             }
 
             const q = encodeParams({ action, ...extras });
             try {
                 const res = await fetch(`${PROXY}?q=${q}`);
-                const data = await res.json();
-                toggleLoader(false);
-                return data;
+                return await res.json();
             } catch (err) {
                 console.error(err);
-                toggleLoader(false);
                 return null;
             }
         }
 
-        // --- UI HELPERS ---
-        function toggleLoader(show) {
-            document.getElementById('loader').style.display = show ? 'block' : 'none';
-            document.getElementById('grid').style.opacity = show ? '0' : '1';
-        }
-
-        function toggleModal(show) {
-            document.getElementById('server-modal').style.display = show ? 'flex' : 'none';
-        }
-
-        function renderNav(items) {
-            const nav = document.getElementById('nav-bar');
-            nav.innerHTML = '<span class="nav-item" onclick="loadBatches()">Home</span>';
-            items.forEach((it, idx) => {
-                const span = document.createElement('span');
-                span.className = `nav-item ${idx === items.length-1 ? 'active' : ''}`;
-                span.innerHTML = ` &nbsp;/&nbsp; ${it.label}`;
-                span.onclick = it.fn;
-                nav.appendChild(span);
-            });
-        }
-
-        // --- CORE ACTIONS ---
         async function loadBatches() {
             const data = await api('get_batches_list');
-            if (!data || !data.batches) {
-                alert("Sir, data ingestion failed. Check network.");
-                return;
-            }
+            if (!data || !data.batches) return;
             
-            renderNav([]);
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
+            document.getElementById('nav-bar').innerHTML = '<span class="nav-item active">Home</span>';
 
             data.batches.forEach(b => {
                 const id = b._id || b.batch_id;
@@ -224,14 +156,10 @@
                 el.className = 'card';
                 el.onclick = () => loadSubjects(id, b.name);
                 el.innerHTML = `
-                    <div class="card-img-wrap">
-                        <img src="${img}" class="card-img" onerror="this.src='https://eduzex.is-great.org/pw_banner.png'">
-                        <div class="card-badge">${b.language || 'Hinglish'}</div>
-                    </div>
+                    <div class="card-img-wrap"><img src="${img}" class="card-img" onerror="this.src='https://eduzex.is-great.org/pw_banner.png'"></div>
                     <div class="card-content">
                         <div class="card-title">${b.name}</div>
-                        <div class="card-desc">${b.byName || 'Batch'}</div>
-                        <div class="action-btn">ACCESS BATCH</div>
+                        <div class="action-btn">ACCESS</div>
                     </div>
                 `;
                 grid.appendChild(el);
@@ -240,148 +168,40 @@
 
         async function loadSubjects(batchId, batchName) {
             state.batchId = batchId;
+            // Immediate feedback: clear grid
+            document.getElementById('grid').innerHTML = '<div class="loader-wrap" style="display:block">FETCHING SUBJECTS...</div>';
+            
             const data = await api('get_subjects', { batchId });
-            if (!data || !data.data) return;
+            if (!data || !data.data) { loadBatches(); return; }
 
-            renderNav([{ label: batchName, fn: () => loadSubjects(batchId, batchName) }]);
             const grid = document.getElementById('grid');
             grid.innerHTML = '';
+            document.getElementById('nav-bar').innerHTML = `<span class="nav-item" onclick="loadBatches()">Home</span> / <span class="nav-item active">${batchName}</span>`;
 
             data.data.forEach(s => {
                 const id = s.id || s._id;
                 const name = s.name || s.subject;
-                const img = s.imageUrl || '';
+                const img = s.imageUrl || 'https://eduzex.is-great.org/pw/pi_icon.png';
                 const el = document.createElement('div');
                 el.className = 'card';
                 
-                // REDIRECTION LOGIC: Same-Tab Deep Link to Content Hub
+                // HYPER-SPEED REDIRECTION: SAME TAB
                 const redirectUrl = `https://stream.testuk.org/content?batchId=${batchId}&subjectId=${id}&batchName=${encodeURIComponent(batchName)}&subjectName=${encodeURIComponent(name)}`;
                 
-                el.onclick = () => {
-                    console.log(`[+] Strategic Redirection: ${redirectUrl}`);
-                    window.location.href = redirectUrl; // Same Tab
+                el.onclick = (e) => {
+                    e.preventDefault();
+                    window.location.replace(redirectUrl); // HARD REDIRECT - SAME TAB
                 };
 
                 el.innerHTML = `
-                    <div class="card-img-wrap">
-                        <img src="${img}" class="card-img" onerror="this.src='https://eduzex.is-great.org/pw/pi_icon.png'">
-                    </div>
+                    <div class="card-img-wrap"><img src="${img}" class="card-img" onerror="this.src='https://eduzex.is-great.org/pw/pi_icon.png'"></div>
                     <div class="card-content">
                         <div class="card-title">${name}</div>
-                        <div class="card-desc">Instant Access Node</div>
-                        <div class="action-btn" style="background:#22c55e">OPEN SUBJECT</div>
+                        <div class="action-btn" style="background:#22c55e">OPEN IN STREAM</div>
                     </div>
                 `;
                 grid.appendChild(el);
             });
-        }
-
-        async function loadChapters(subjectId, subjectName, batchName) {
-            state.subjectId = subjectId;
-            const data = await api('get_chapters', { batchId: state.batchId, subjectId });
-            if (!data || !data.data) return;
-
-            renderNav([
-                { label: batchName, fn: () => loadSubjects(state.batchId, batchName) },
-                { label: subjectName, fn: () => loadChapters(subjectId, subjectName, batchName) }
-            ]);
-
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
-
-            data.data.forEach(c => {
-                const id = c.id || c._id;
-                const name = c.name || c.topic;
-                const el = document.createElement('div');
-                el.className = 'card';
-                el.onclick = () => loadLectures(id, name, subjectName, batchName);
-                el.innerHTML = `
-                    <div class="card-content">
-                        <div class="card-title">${name}</div>
-                        <div class="card-desc">${c.videos || 0} Lectures | ${c.notes || 0} Notes</div>
-                        <div class="action-btn">OPEN CHAPTER</div>
-                    </div>
-                `;
-                grid.appendChild(el);
-            });
-        }
-
-        async function loadLectures(chapterId, chapName, subjectName, batchName) {
-            const [vData, nData] = await Promise.all([
-                api('get_contents', { batchId: state.batchId, subjectId: state.subjectId, tag: chapterId, contentType: 'videos' }),
-                api('get_contents', { batchId: state.batchId, subjectId: state.subjectId, tag: chapterId, contentType: 'notes' })
-            ]);
-
-            renderNav([
-                { label: batchName, fn: () => loadSubjects(state.batchId, batchName) },
-                { label: subjectName, fn: () => loadChapters(state.subjectId, subjectName, batchName) },
-                { label: chapName, fn: null }
-            ]);
-
-            const grid = document.getElementById('grid');
-            grid.innerHTML = '';
-
-            if (vData && vData.data) {
-                vData.data.forEach(l => {
-                    const el = document.createElement('div');
-                    el.className = 'card';
-                    el.onclick = () => showServerModal(l._id, l.topic, l.videoDetails.image, l.videoDetails.videoUrl || '', l.videoDetails.token || '');
-                    el.innerHTML = `
-                        <div class="card-img-wrap">
-                            <img src="${l.videoDetails.image}" class="card-img">
-                            <div class="card-badge" style="background:#22c55e">VIDEO</div>
-                        </div>
-                        <div class="card-content">
-                            <div class="card-title">${l.topic}</div>
-                            <div class="action-btn" style="background:#22c55e">PLAY NOW</div>
-                        </div>
-                    `;
-                    grid.appendChild(el);
-                });
-            }
-
-            if (nData && nData.data) {
-                nData.data.forEach(n => {
-                    if (n.homeworkIds && n.homeworkIds[0] && n.homeworkIds[0].attachmentIds[0]) {
-                        const att = n.homeworkIds[0].attachmentIds[0];
-                        const url = att.baseUrl + att.key;
-                        const el = document.createElement('div');
-                        el.className = 'card';
-                        el.onclick = () => window.open(url, '_blank');
-                        el.innerHTML = `
-                            <div class="card-content">
-                                <div class="card-badge" style="background:#f59e0b">PDF</div>
-                                <div class="card-title">${n.topic}</div>
-                                <div class="action-btn" style="background:#f59e0b">OPEN NOTES</div>
-                            </div>
-                        `;
-                        grid.appendChild(el);
-                    }
-                });
-            }
-        }
-
-        function showServerModal(id, title, img, url, token) {
-            document.getElementById('m-title').innerText = title;
-            const bId = state.batchId;
-            const sId = state.subjectId;
-            
-            const srvs = [
-                { name: 'Server 1 (EduNova Redirect)', url: `https://edunova-pw.site/videoplayerr.php?video_id=${id}&batch_id=${bId}&subject_id=${sId}&name=${encodeURIComponent(title)}` },
-                { name: 'Server 2 (Heroku Stealth)', url: `https://anonymouspwplayerrr-31d6706c7a3b.herokuapp.com/pw?url=${encodeURIComponent(url)}&token=${encodeURIComponent(token)}` },
-                { name: 'Server 3 (StudyStark)', url: `https://studystark.com/play.php?batch_id=${bId}&subject_id=${sId}&topic_id=${id}&video_id=${id}&video_name=${encodeURIComponent(title)}&video_img=${encodeURIComponent(img)}&video_type=new&play_type=Lecture` }
-            ];
-
-            const container = document.getElementById('m-servers');
-            container.innerHTML = '';
-            srvs.forEach(s => {
-                const div = document.createElement('div');
-                div.className = 'server-opt';
-                div.innerHTML = `<span>⚡</span> ${s.name}`;
-                div.onclick = () => window.open(s.url, '_blank');
-                container.appendChild(div);
-            });
-            toggleModal(true);
         }
 
         loadBatches();
