@@ -107,7 +107,9 @@
 
     <main>
         <div id="grid" class="content-grid">
-            <!-- Batches will be injected -->
+            <div id="status-msg" style="text-align:center; padding: 100px; color:var(--accent); font-weight:700; width:100%; grid-column: 1 / -1;">
+                SIR, ACCESSING THE CITADEL... (5MB MATRIX LOADING)
+            </div>
         </div>
 
         <div class="pagination">
@@ -124,22 +126,48 @@
 
         async function init() {
             console.log("[!] System initializing...");
-            try {
-                const res = await fetch('batches.json');
-                console.log("[!] Fetch status:", res.status);
-                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-                const data = await res.json();
-                fullBatches = data.batches || [];
-                console.log(`[!] Matrix loaded: ${fullBatches.length} batches`);
-                if (fullBatches.length === 0) {
-                    document.getElementById('grid').innerHTML = '<div style="text-align:center; padding: 100px;">Sir, matrix is empty. Data ingestion pending.</div>';
-                } else {
-                    renderPage(1);
+            
+            async function attemptFetch(retries = 5) {
+                try {
+                    const res = await fetch('batches.json');
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    
+                    const text = await res.text();
+                    
+                    // InfinityFree Security Challenge Detection
+                    if (text.includes("aes.js") || text.includes("<script") && !text.includes("success")) {
+                        console.warn(`[!] Security Wall detected. Retries left: ${retries}. Syncing in 2s...`);
+                        if (retries > 0) {
+                            setTimeout(() => attemptFetch(retries - 1), 2000);
+                            return;
+                        }
+                    }
+
+                    const data = JSON.parse(text);
+                    fullBatches = data.batches || [];
+                    console.log(`[!] Matrix loaded: ${fullBatches.length} batches`);
+                    
+                    if (fullBatches.length === 0) {
+                        document.getElementById('grid').innerHTML = '<div style="text-align:center; padding: 100px; width:100%; grid-column: 1 / -1;">Sir, matrix is empty. Data ingestion pending.</div>';
+                    } else {
+                        renderPage(1);
+                    }
+                } catch (e) {
+                    console.error("[!] Matrix error:", e.message);
+                    if (retries > 0) {
+                        console.log(`[+] Auto-retrying... (${retries} left)`);
+                        setTimeout(() => attemptFetch(retries - 1), 2000);
+                    } else {
+                        document.getElementById('grid').innerHTML = `
+                            <div style="text-align:center; padding: 100px; width:100%; grid-column: 1 / -1;">
+                                Sir, Matrix connection unstable: ${e.message}.<br><br>
+                                <button onclick="location.reload()" style="padding:12px 24px; background:var(--accent); border-radius:12px; border:none; color:white; cursor:pointer; font-weight:800;">RE-SYNC PROTOCOL</button>
+                            </div>`;
+                    }
                 }
-            } catch (e) {
-                console.error("[!] Matrix initialization error:", e);
-                document.getElementById('grid').innerHTML = `<div style="text-align:center; padding: 100px;">Sir, matrix connection failed: ${e.message}.<br><br><button onclick="location.reload()" style="padding:10px; background:var(--accent); border-radius:8px; border:none; color:white; cursor:pointer;">RETRY PROTOCOL</button></div>`;
             }
+
+            attemptFetch();
         }
 
         function renderPage(page) {
