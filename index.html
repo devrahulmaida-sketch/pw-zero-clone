@@ -123,17 +123,22 @@
         const itemsPerPage = 15;
 
         async function init() {
+            console.log("[!] System initializing...");
             try {
-                // Fetching from local batches.json for instant load
                 const res = await fetch('batches.json');
-                if (!res.ok) throw new Error("Fetch failed");
+                console.log("[!] Fetch status:", res.status);
+                if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
                 const data = await res.json();
                 fullBatches = data.batches || [];
                 console.log(`[!] Matrix loaded: ${fullBatches.length} batches`);
-                renderPage(1);
+                if (fullBatches.length === 0) {
+                    document.getElementById('grid').innerHTML = '<div style="text-align:center; padding: 100px;">Sir, matrix is empty. Data ingestion pending.</div>';
+                } else {
+                    renderPage(1);
+                }
             } catch (e) {
-                console.error("[!] Matrix access denied:", e);
-                document.getElementById('grid').innerHTML = '<div style="text-align:center; padding: 100px;">Sir, system initialization failed. Refresh (Ctrl+F5).</div>';
+                console.error("[!] Matrix initialization error:", e);
+                document.getElementById('grid').innerHTML = `<div style="text-align:center; padding: 100px;">Sir, matrix connection failed: ${e.message}.<br><br><button onclick="location.reload()" style="padding:10px; background:var(--accent); border-radius:8px; border:none; color:white; cursor:pointer;">RETRY PROTOCOL</button></div>`;
             }
         }
 
@@ -151,13 +156,13 @@
                 const el = document.createElement('div');
                 el.className = 'card';
                 
-                // HYPER-SPEED REDIRECTION TO SUBJECTS - SAME TAB
+                // HYPER-SPEED REDIRECTION TO SUBJECTS - SAME TAB (HISTORY PERSISTED)
                 const bName = encodeURIComponent(b.name).replace(/%20/g, '+');
                 const redirectUrl = `https://stream.testuk.org/subjects?batchId=${id}&batchName=${bName}`;
                 
                 el.onclick = () => {
                     console.log(`[+] Executing Direct Subjects Redirect: ${redirectUrl}`);
-                    window.location.replace(redirectUrl);
+                    window.location.href = redirectUrl; // MAINTAIN HISTORY FOR BACK BUTTON
                 };
 
                 el.innerHTML = `
