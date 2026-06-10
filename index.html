@@ -3,77 +3,90 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAHUL-PW | THE OMNI-MACHINE V6</title>
+    <title>RAHUL-PW | THE OMNI-MACHINE V7</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
     <style>
         :root { --bg-dark: #09090b; --bg-card: #18181b; --accent: #3b82f6; --text-main: #fafafa; --text-dim: #a1a1aa; --border: #27272a; }
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
         body { background-color: var(--bg-dark); color: var(--text-main); }
-
-        header {
-            height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px;
-            background: rgba(9, 9, 11, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
-            position: sticky; top: 0; z-index: 1000;
-        }
-        .brand { font-size: 24px; font-weight: 800; letter-spacing: -1px; }
-        .brand span { color: var(--accent); }
-        .status { font-size: 12px; color: #22c55e; }
-
-        main { padding: 30px 40px; max-width: 1400px; margin: 0 auto; }
-        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; }
-
-        .card {
-            background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; overflow: hidden;
-            transition: all 0.3s ease; cursor: pointer; will-change: transform;
-        }
-        .card:hover { transform: translateY(-4px); border-color: var(--accent); }
-
-        .card-img-wrap { width: 100%; height: 160px; background: #27272a; }
-        .card-img { width: 100%; height: 100%; object-fit: cover; }
-        .card-content { padding: 16px; }
-        .card-title { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
-        .action-btn { width: 100%; padding: 10px; background: var(--accent); color: white; text-align: center; border-radius: 8px; font-weight: 600; font-size: 13px; }
-
-        @media (max-width: 768px) { header { padding: 0 20px; } main { padding: 20px; } }
+        header { height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; border-bottom: 1px solid var(--border); }
+        .brand { font-size: 20px; font-weight: 800; }
+        .search-container { flex-grow: 1; margin: 0 40px; }
+        #search-bar { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: #27272a; color: white; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px; padding: 20px; }
+        .card { background: var(--bg-card); padding: 15px; border-radius: 12px; border: 1px solid var(--border); }
+        .fav-btn { cursor: pointer; float: right; color: var(--text-dim); }
+        .fav-btn.active { color: #f59e0b; }
+        .btn { display: block; margin-top: 10px; padding: 10px; background: var(--accent); color: white; text-align: center; border-radius: 6px; font-weight: 600; cursor: pointer; }
+        .pagination { display: flex; justify-content: center; gap: 20px; padding: 20px; }
     </style>
 </head>
 <body>
     <header>
         <div class="brand">RAHUL<span>-PW</span></div>
-        <div class="status" id="status">OPTIMIZED V6</div>
+        <div class="search-container"><input type="text" id="search-bar" placeholder="Search batches..." oninput="handleSearch()"></div>
+        <div id="status">V7 ONLINE</div>
     </header>
-    <main id="grid" class="grid">Loading...</main>
-
+    <main id="grid" class="grid"></main>
+    <div class="pagination">
+        <button onclick="changePage(-1)">PREV</button>
+        <span id="page-info">1</span>
+        <button onclick="changePage(1)">NEXT</button>
+    </div>
     <script>
+        let allBatches = [];
+        let filteredBatches = [];
+        let currentPage = 1;
+        const itemsPerPage = 15;
+        let favorites = JSON.parse(localStorage.getItem('favs') || '[]');
+
         async function init() {
-            try {
-                const res = await fetch('batches.json');
-                const data = await res.json();
-                const grid = document.getElementById('grid');
-                grid.innerHTML = '';
-                
-                // Optimized rendering: slice for initial load, then add rest later if needed
-                data.batches.slice(0, 30).forEach(b => {
-                    const id = b._id || b.batch_id;
-                    const img = b.previewImage || b.photo || 'https://eduzex.is-great.org/pw_banner.png';
-                    const bName = encodeURIComponent(b.name).replace(/%20/g, '+');
-                    
-                    const el = document.createElement('div');
-                    el.className = 'card';
-                    el.onclick = () => window.location.href = `https://stream.testuk.org/subjects?batchId=${id}&batchName=${bName}`;
-                    el.innerHTML = `
-                        <div class="card-img-wrap">
-                            <img src="${img}" class="card-img" loading="lazy" onerror="this.src='https://eduzex.is-great.org/pw_banner.png'">
-                        </div>
-                        <div class="card-content">
-                            <div class="card-title">${b.name}</div>
-                            <div class="action-btn">ENTER BATCH</div>
-                        </div>
-                    `;
-                    grid.appendChild(el);
-                });
-            } catch (e) {
-                document.getElementById('status').innerText = "ERROR";
+            const res = await fetch('batches.json');
+            const data = await res.json();
+            allBatches = data.batches;
+            filteredBatches = allBatches;
+            render();
+        }
+
+        function handleSearch() {
+            const q = document.getElementById('search-bar').value.toLowerCase();
+            filteredBatches = allBatches.filter(b => b.name.toLowerCase().includes(q));
+            currentPage = 1;
+            render();
+        }
+
+        function toggleFav(id) {
+            if (favorites.includes(id)) favorites = favorites.filter(f => f !== id);
+            else favorites.push(id);
+            localStorage.setItem('favs', JSON.stringify(favorites));
+            render();
+        }
+
+        function render() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            const start = (currentPage - 1) * itemsPerPage;
+            const pageItems = filteredBatches.slice(start, start + itemsPerPage);
+            
+            pageItems.forEach(b => {
+                const id = b._id || b.batch_id;
+                const isFav = favorites.includes(id);
+                const el = document.createElement('div');
+                el.className = 'card';
+                el.innerHTML = `
+                    <span class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav('${id}')">★</span>
+                    <div style="font-weight:700; margin-bottom:10px;">${b.name}</div>
+                    <div class="btn" onclick="window.location.href='https://stream.testuk.org/subjects?batchId=${id}&batchName=${encodeURIComponent(b.name).replace(/%20/g,'+')}'">ENTER</div>
+                `;
+                grid.appendChild(el);
+            });
+            document.getElementById('page-info').innerText = currentPage;
+        }
+
+        function changePage(dir) {
+            if (currentPage + dir > 0 && (currentPage + dir - 1) * itemsPerPage < filteredBatches.length) {
+                currentPage += dir;
+                render();
             }
         }
         init();
