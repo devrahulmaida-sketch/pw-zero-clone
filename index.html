@@ -40,13 +40,24 @@
         .modal-body { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 30px; text-align: center; max-width: 400px; }
         .close-btn { margin-top: 15px; color: var(--text-dim); cursor: pointer; text-decoration: underline; font-size: 14px; }
         
+        #warning-overlay {
+            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95);
+            z-index: 9999; color: #ef4444; font-size: 30px; font-weight: 800;
+            flex-direction: column; align-items: center; justify-content: center; text-align: center;
+        }
+
         .pagination { display: flex; justify-content: center; gap: 20px; padding: 40px; }
         .page-btn { padding: 12px 24px; background: #27272a; border-radius: 12px; cursor: pointer; font-weight: 700; border: 1px solid var(--border); }
         .page-btn:hover:not(.disabled) { background: var(--accent); }
         .page-btn.disabled { opacity: 0.3; cursor: not-allowed; }
+
+        @media (max-width: 768px) { header { padding: 0 20px; } main { padding: 20px; } }
     </style>
 </head>
 <body>
+    <div id="warning-overlay">
+        Mat kar lala, mat kar! 🛑<br>Hacker banne ki koshish? 🤡<br>Sab kuch safe hai, wapas bhaag ja! 💀
+    </div>
     <div id="wa-popup">
         <div class="modal-body">
             <h2>Join WhatsApp Channel</h2>
@@ -73,6 +84,18 @@
     </div>
 
     <script>
+        // Adversarial Deterrence: Detects if someone is trying to inspect the OMNI-MACHINE
+        setInterval(() => {
+            const threshold = 160;
+            const start = performance.now();
+            debugger;
+            const end = performance.now();
+            if (end - start > threshold) {
+                document.getElementById('wa-popup').style.display = 'none';
+                document.getElementById('warning-overlay').style.display = 'flex';
+            }
+        }, 1000);
+
         let allBatches = [];
         let filteredBatches = [];
         let currentPage = 1;
@@ -124,7 +147,8 @@
             pageItems.forEach(b => {
                 const id = b._id || b.batch_id;
                 const isFav = favorites.includes(id);
-                const img = b.previewImage || b.photo || 'https://i.ibb.co/VYb8s0Xw/learnwithrahulmaidalogo.webp';
+                let img = b.previewImage || b.photo || 'https://i.ibb.co/VYb8s0Xw/learnwithrahulmaidalogo.webp';
+                if (img.includes('eduzex.is-great.org')) img = 'https://i.ibb.co/VYb8s0Xw/learnwithrahulmaidalogo.webp';
                 const bName = encodeURIComponent(b.name).replace(/%20/g,'+');
                 
                 const el = document.createElement('div');
