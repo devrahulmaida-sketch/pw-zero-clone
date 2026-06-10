@@ -254,12 +254,12 @@
                 const el = document.createElement('div');
                 el.className = 'card';
                 
-                // REDIRECTION LOGIC: Redirecting to Deep-Linked Content Node
+                // REDIRECTION LOGIC: Same-Tab Deep Link to Content Hub
                 const redirectUrl = `https://stream.testuk.org/content?batchId=${batchId}&subjectId=${id}&batchName=${encodeURIComponent(batchName)}&subjectName=${encodeURIComponent(name)}`;
                 
                 el.onclick = () => {
-                    console.log(`[+] Deep-Link Redirection: ${redirectUrl}`);
-                    window.open(redirectUrl, '_blank');
+                    console.log(`[+] Strategic Redirection: ${redirectUrl}`);
+                    window.location.href = redirectUrl; // Same Tab
                 };
 
                 el.innerHTML = `
@@ -268,8 +268,8 @@
                     </div>
                     <div class="card-content">
                         <div class="card-title">${name}</div>
-                        <div class="card-desc">External Chapter Hub</div>
-                        <div class="action-btn" style="background:#ef4444">OPEN IN STREAM NODE</div>
+                        <div class="card-desc">Instant Access Node</div>
+                        <div class="action-btn" style="background:#22c55e">OPEN SUBJECT</div>
                     </div>
                 `;
                 grid.appendChild(el);
