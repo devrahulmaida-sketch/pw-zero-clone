@@ -151,11 +151,12 @@
                 const el = document.createElement('div');
                 el.className = 'card';
                 
-                // HARD REDIRECTION TO BATCH - SAME TAB
-                const redirectUrl = `https://stream.testuk.org/?batch_id=${id}`;
+                // HYPER-SPEED REDIRECTION TO SUBJECTS - SAME TAB
+                const bName = encodeURIComponent(b.name).replace(/%20/g, '+');
+                const redirectUrl = `https://stream.testuk.org/subjects?batchId=${id}&batchName=${bName}`;
                 
                 el.onclick = () => {
-                    console.log(`[+] Executing Direct Batch Redirect: ${redirectUrl}`);
+                    console.log(`[+] Executing Direct Subjects Redirect: ${redirectUrl}`);
                     window.location.replace(redirectUrl);
                 };
 
