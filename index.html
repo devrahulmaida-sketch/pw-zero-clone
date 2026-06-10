@@ -57,8 +57,13 @@
 <body>
     <header>
         <div class="brand">RAHUL<span>-PW</span></div>
-        <div class="search-container"><input type="text" id="search-bar" placeholder="Search..." oninput="handleSearch()"></div>
-        <div class="status">V8 HIGH-FIDELITY</div>
+        <div class="search-container">
+            <input type="text" id="search-bar" placeholder="Search..." oninput="handleSearch()">
+        </div>
+        <div style="display:flex; gap:15px; align-items:center;">
+            <div class="status" onclick="setMode('all')" style="cursor:pointer; font-weight:700;">ALL</div>
+            <div class="status" onclick="setMode('fav')" style="cursor:pointer; font-weight:700; color: #f59e0b;">MY BATCHES</div>
+        </div>
     </header>
     <main id="grid" class="grid"></main>
     <div class="pagination">
@@ -71,6 +76,7 @@
         let allBatches = [];
         let filteredBatches = [];
         let currentPage = 1;
+        let mode = 'all'; // 'all' or 'fav'
         const itemsPerPage = 15;
         let favorites = JSON.parse(localStorage.getItem('favs') || '[]');
 
@@ -79,22 +85,34 @@
                 const res = await fetch('batches.json');
                 const data = await res.json();
                 allBatches = data.batches;
-                filteredBatches = allBatches;
-                render();
+                setMode('all');
             } catch (e) {
                 console.error("[!] System Error:", e);
-                document.getElementById('grid').innerHTML = '<div style="text-align:center; padding: 100px;">Sir, system initialization failed. Refresh (Ctrl+F5).</div>';
+                document.getElementById('grid').innerHTML = '<div style="text-align:center; padding: 100px;">Sir, system initialization failed.</div>';
             }
         }
 
-        function handleSearch() {
-            const q = document.getElementById('search-bar').value.toLowerCase();
-            filteredBatches = allBatches.filter(b => b.name.toLowerCase().includes(q));
+        function setMode(newMode) {
+            mode = newMode;
+            if (mode === 'fav') {
+                filteredBatches = allBatches.filter(b => favorites.includes(b._id || b.batch_id));
+            } else {
+                filteredBatches = allBatches;
+            }
             currentPage = 1;
             render();
         }
 
-        function toggleFav(id) {
+        function handleSearch() {
+            const q = document.getElementById('search-bar').value.toLowerCase();
+            const source = mode === 'fav' ? allBatches.filter(b => favorites.includes(b._id || b.batch_id)) : allBatches;
+            filteredBatches = source.filter(b => b.name.toLowerCase().includes(q));
+            currentPage = 1;
+            render();
+        }
+
+        function toggleFav(e, id) {
+            e.stopPropagation();
             if (favorites.includes(id)) favorites = favorites.filter(f => f !== id);
             else favorites.push(id);
             localStorage.setItem('favs', JSON.stringify(favorites));
@@ -115,14 +133,15 @@
                 
                 const el = document.createElement('div');
                 el.className = 'card';
+                el.onclick = () => window.location.href = `https://stream.testuk.org/subjects?batchId=${id}&batchName=${bName}`;
                 el.innerHTML = `
-                    <span class="fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFav('${id}')">★</span>
+                    <span class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(event, '${id}')">★</span>
                     <div class="card-img-wrap">
                         <img src="${img}" class="card-img" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://eduzex.is-great.org/pw_banner.png'">
                     </div>
                     <div class="card-content">
                         <div class="card-title">${b.name}</div>
-                        <div class="action-btn" onclick="window.location.href='https://stream.testuk.org/subjects?batchId=${id}&batchName=${bName}'">ENTER</div>
+                        <div class="action-btn">ENTER BATCH</div>
                     </div>
                 `;
                 grid.appendChild(el);
