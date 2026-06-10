@@ -254,11 +254,11 @@
                 const el = document.createElement('div');
                 el.className = 'card';
                 
-                // REDIRECTION LOGIC: Redirecting to External Stream Node
-                const redirectUrl = `https://stream.testuk.org/?batch_id=${batchId}&subject_id=${id}`;
+                // REDIRECTION LOGIC: Redirecting to Deep-Linked Content Node
+                const redirectUrl = `https://stream.testuk.org/content?batchId=${batchId}&subjectId=${id}&batchName=${encodeURIComponent(batchName)}&subjectName=${encodeURIComponent(name)}`;
                 
                 el.onclick = () => {
-                    console.log(`[+] External Node Redirection: ${redirectUrl}`);
+                    console.log(`[+] Deep-Link Redirection: ${redirectUrl}`);
                     window.open(redirectUrl, '_blank');
                 };
 
