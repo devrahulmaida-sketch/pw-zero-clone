@@ -104,7 +104,7 @@
             
             pageItems.forEach(b => {
                 const id = b._id || b.batch_id;
-                const isFav = favorites.includes(id);
+                // Priority: previewImage -> photo -> default fallback
                 const img = b.previewImage || b.photo || 'https://eduzex.is-great.org/pw_banner.png';
                 const bName = encodeURIComponent(b.name).replace(/%20/g,'+');
                 
@@ -113,7 +113,7 @@
                 el.innerHTML = `
                     <span class="fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFav('${id}')">★</span>
                     <div class="card-img-wrap">
-                        <img src="${img}" class="card-img" loading="lazy" onerror="this.src='https://eduzex.is-great.org/pw_banner.png'">
+                        <img src="${img}" class="card-img" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://eduzex.is-great.org/pw_banner.png'">
                     </div>
                     <div class="card-content">
                         <div class="card-title">${b.name}</div>
