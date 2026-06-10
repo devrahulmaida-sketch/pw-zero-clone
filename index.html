@@ -75,11 +75,16 @@
         let favorites = JSON.parse(localStorage.getItem('favs') || '[]');
 
         async function init() {
-            const res = await fetch('batches.json');
-            const data = await res.json();
-            allBatches = data.batches;
-            filteredBatches = allBatches;
-            render();
+            try {
+                const res = await fetch('batches.json');
+                const data = await res.json();
+                allBatches = data.batches;
+                filteredBatches = allBatches;
+                render();
+            } catch (e) {
+                console.error("[!] System Error:", e);
+                document.getElementById('grid').innerHTML = '<div style="text-align:center; padding: 100px;">Sir, system initialization failed. Refresh (Ctrl+F5).</div>';
+            }
         }
 
         function handleSearch() {
@@ -105,8 +110,7 @@
             pageItems.forEach(b => {
                 const id = b._id || b.batch_id;
                 const isFav = favorites.includes(id);
-                let img = b.previewImage || b.photo || 'https://i.ibb.co/VYb8s0Xw/learnwithrahulmaidalogo.webp';
-                if (img.includes('eduzex.is-great.org')) img = 'https://i.ibb.co/VYb8s0Xw/learnwithrahulmaidalogo.webp';
+                const img = b.previewImage || b.photo || 'https://eduzex.is-great.org/pw_banner.png';
                 const bName = encodeURIComponent(b.name).replace(/%20/g,'+');
                 
                 const el = document.createElement('div');
@@ -114,7 +118,7 @@
                 el.innerHTML = `
                     <span class="fav-btn ${isFav ? 'active' : ''}" onclick="event.stopPropagation(); toggleFav('${id}')">★</span>
                     <div class="card-img-wrap">
-                        <img src="${img}" class="card-img" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://i.ibb.co/VYb8s0Xw/learnwithrahulmaidalogo.webp'">
+                        <img src="${img}" class="card-img" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://eduzex.is-great.org/pw_banner.png'">
                     </div>
                     <div class="card-content">
                         <div class="card-title">${b.name}</div>
