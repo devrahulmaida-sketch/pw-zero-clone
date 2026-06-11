@@ -84,24 +84,13 @@
     </div>
 
     <script>
-        // Adversarial Deterrence: Detects if someone is trying to inspect the OMNI-MACHINE
-        setInterval(() => {
-            const threshold = 160;
-            const start = performance.now();
-            debugger;
-            const end = performance.now();
-            if (end - start > threshold) {
-                document.getElementById('wa-popup').style.display = 'none';
-                document.getElementById('warning-overlay').style.display = 'flex';
-            }
-        }, 1000);
-
         let allBatches = [];
         let filteredBatches = [];
         let currentPage = 1;
         let mode = 'all';
         const itemsPerPage = 15;
         let favorites = JSON.parse(localStorage.getItem('favs') || '[]');
+
 
         async function init() {
             try {
