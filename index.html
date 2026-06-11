@@ -114,8 +114,8 @@
             pageItems.forEach(b => {
                 const id = b._id || b.batch_id;
                 const isFav = favorites.includes(id);
-                let img = b.previewImage || b.photo || 'https://i.ibb.co/0yD6fcCL/bannerimage-Rahul-maida.jpg';
-                if (img.includes('eduzex.is-great.org')) img = 'https://i.ibb.co/0yD6fcCL/bannerimage-Rahul-maida.jpg';
+                let img = b.previewImage || b.photo || 'https://i.ibb.co/RTvsC93K/bannerimage-Rahul-maida.jpg';
+                if (img.includes('eduzex.is-great.org')) img = 'https://i.ibb.co/RTvsC93K/bannerimage-Rahul-maida.jpg';
                 const bName = encodeURIComponent(b.name).replace(/%20/g,'+');
                 
                 const el = document.createElement('div');
@@ -123,7 +123,7 @@
                 el.onclick = () => window.location.href = `https://stream.testuk.org/subjects?batchId=${id}&batchName=${bName}`;
                 el.innerHTML = `
                     <span class="fav-btn ${isFav ? 'active' : ''}" onclick="toggleFav(event, '${id}')">★</span>
-                    <div class="card-img-wrap"><img src="${img}" class="card-img" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://i.ibb.co/0yD6fcCL/bannerimage-Rahul-maida.jpg'"></div>
+                    <div class="card-img-wrap"><img src="${img}" class="card-img" loading="lazy" style="width:100%; height:100%; object-fit:cover;" onerror="this.src='https://i.ibb.co/RTvsC93K/bannerimage-Rahul-maida.jpg'"></div>
                     <div class="card-content">
                         <div class="card-title">${b.name}</div>
                         <div class="action-btn">ENTER BATCH</div>
