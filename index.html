@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RAHUL-PW | THE OMNI-MACHINE V8</title>
+    <title>RAHUL-PW | THE OMNI-MACHINE V8.4</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
     <style>
         :root { --bg-dark: #09090b; --bg-card: #18181b; --accent: #3b82f6; --text-main: #fafafa; --text-dim: #a1a1aa; --border: #27272a; }
@@ -35,17 +35,6 @@
         .fav-btn.active { color: #f59e0b; }
         .action-btn { width: 100%; padding: 12px; background: var(--accent); color: white; text-align: center; border-radius: 10px; font-weight: 700; font-size: 14px; margin-top: 10px; }
 
-        .wa-fab { position: fixed; bottom: 20px; right: 20px; padding: 15px 25px; background: #25D366; color: white; border-radius: 50px; font-weight: 700; cursor: pointer; z-index: 1000; box-shadow: 0 4px 15px rgba(37, 211, 102, 0.3); }
-        #wa-popup { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.85); z-index: 2000; align-items: center; justify-content: center; padding: 20px; }
-        .modal-body { background: var(--bg-card); border: 1px solid var(--border); border-radius: 20px; padding: 30px; text-align: center; max-width: 400px; }
-        .close-btn { margin-top: 15px; color: var(--text-dim); cursor: pointer; text-decoration: underline; font-size: 14px; }
-        
-        #warning-overlay {
-            display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95);
-            z-index: 9999; color: #ef4444; font-size: 30px; font-weight: 800;
-            flex-direction: column; align-items: center; justify-content: center; text-align: center;
-        }
-
         .pagination { display: flex; justify-content: center; gap: 20px; padding: 40px; }
         .page-btn { padding: 12px 24px; background: #27272a; border-radius: 12px; cursor: pointer; font-weight: 700; border: 1px solid var(--border); }
         .page-btn:hover:not(.disabled) { background: var(--accent); }
@@ -55,19 +44,6 @@
     </style>
 </head>
 <body>
-    <div id="warning-overlay">
-        Mat kar lala, mat kar! 🛑<br>Hacker banne ki koshish? 🤡<br>Sab kuch safe hai, wapas bhaag ja! 💀
-    </div>
-    <div id="wa-popup">
-        <div class="modal-body">
-            <h2>Join WhatsApp Channel</h2>
-            <p>Get instant updates and study material!</p>
-            <div class="action-btn" style="background:#25D366" onclick="window.open('https://whatsapp.com/channel/0029Vb86VfU8V0tmM9KqqT2c', '_blank')">JOIN NOW</div>
-            <div class="close-btn" onclick="document.getElementById('wa-popup').style.display='none'">Later</div>
-        </div>
-    </div>
-    <a href="https://whatsapp.com/channel/0029Vb86VfU8V0tmM9KqqT2c" target="_blank" class="wa-fab">JOIN CHANNEL</a>
-    
     <header>
         <div class="brand">RAHUL<span>-PW</span></div>
         <div class="search-container"><input type="text" id="search-bar" placeholder="Search..." oninput="handleSearch()"></div>
@@ -91,16 +67,12 @@
         const itemsPerPage = 15;
         let favorites = JSON.parse(localStorage.getItem('favs') || '[]');
 
-
         async function init() {
             try {
                 const res = await fetch('batches.json');
                 const data = await res.json();
                 allBatches = data.batches;
                 setMode('all');
-                if (!localStorage.getItem('popupShown')) {
-                    setTimeout(() => { document.getElementById('wa-popup').style.display = 'flex'; localStorage.setItem('popupShown', 'true'); }, 3000);
-                }
             } catch (e) { console.error(e); }
         }
 
