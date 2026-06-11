@@ -11,14 +11,14 @@
         body { background-color: var(--bg-dark); color: var(--text-main); }
 
         header {
-            height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 0 40px;
+            height: auto; min-height: 70px; display: flex; align-items: center; justify-content: space-between; padding: 10px 40px;
             background: rgba(9, 9, 11, 0.8); backdrop-filter: blur(12px); border-bottom: 1px solid var(--border);
-            position: sticky; top: 0; z-index: 1000;
+            position: sticky; top: 0; z-index: 1000; flex-wrap: wrap; gap: 15px;
         }
         .brand { font-size: 24px; font-weight: 800; letter-spacing: -1px; }
         .brand span { color: var(--accent); }
-        .status { font-size: 12px; color: #22c55e; cursor:pointer; font-weight:700; }
-        .search-container { flex-grow: 1; margin: 0 40px; }
+        .status { font-size: 11px; color: #22c55e; cursor:pointer; font-weight:700; white-space: nowrap; }
+        .search-container { flex-grow: 1; min-width: 200px; }
         #search-bar { width: 100%; padding: 10px; border-radius: 8px; border: 1px solid var(--border); background: #27272a; color: white; }
 
         main { padding: 30px 40px; max-width: 1400px; margin: 0 auto; }
@@ -40,16 +40,22 @@
         .page-btn:hover:not(.disabled) { background: var(--accent); }
         .page-btn.disabled { opacity: 0.3; cursor: not-allowed; }
 
-        @media (max-width: 768px) { header { padding: 0 20px; } main { padding: 20px; } }
+        @media (max-width: 768px) { 
+            header { padding: 15px 20px; justify-content: center; } 
+            .search-container { margin: 10px 0; order: 3; width: 100%; }
+            main { padding: 20px; } 
+        }
     </style>
 </head>
 <body>
     <header>
-        <div class="brand">RAHUL<span>-PW</span></div>
+        <div class="brand" onclick="loadBatches()">RAHUL<span>-PW</span></div>
         <div class="search-container"><input type="text" id="search-bar" placeholder="Search..." oninput="handleSearch()"></div>
-        <div style="display:flex; gap:15px; align-items:center;">
-            <div class="status" onclick="setMode('all')" style="cursor:pointer;">ALL</div>
-            <div class="status" onclick="setMode('fav')" style="cursor:pointer; color:#f59e0b;">MY BATCHES</div>
+        <div style="display:flex; gap:12px; align-items:center; flex-wrap: wrap; justify-content: center;">
+            <div class="status" onclick="setMode('all')">ALL</div>
+            <div class="status" onclick="setMode('fav')" style="color:#f59e0b;">MY BATCHES</div>
+            <div class="status" onclick="window.location.href='https://mj.streamfiles.eu.org/'" style="color:#10b981;">MISSIONJEET</div>
+            <div class="status" onclick="window.location.href='https://nt.streamfiles.eu.org/'" style="color:#a855f7;">NEXTTOPPERS</div>
         </div>
     </header>
     <main id="grid" class="grid"></main>
